@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+import rospy
+from geometry_msgs.msg import Twist
+import time
+
+
+
+def init_localization():
+	pub = rospy.Publisher('RosAria/cmd_vel',Twist,queue_size = 1)
+	rospy.init_node('init_localizer',anonymous=True)
+	time.sleep(1)
+	speed = Twist()
+	speed.angular.z = 0.7
+	i = 1
+	while(i!=30):
+		pub.publish(speed)
+		time.sleep(0.5)
+		i = i+1
+#	time.sleep(10)
+#	speed.linear.x = 0
+#	speed.angular.z = 0
+#	pub.publish(speed)
+if __name__ == '__main__':
+	init_localization()
+	
+

@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import rospy
+import sys
+from simple_navigation_goals.srv import *
+
+def simple_navigation_golas_client(x,y,w):
+	rospy.wait_for_service('simple_navigation_golas')
+	try:
+		send_goals = rospy.ServiceProxy('simple_navigation_golas', simple_navigation_goals)
+		resp1 = send_goals(x, y, w)
+		return resp1.resp
+	except rospy.ServiceException, e:
+		print "Service call failed: %s"%e
+
+def usage():
+	return "%s [x y w]"%sys.argv[0]
+
+
+if __name__ == "__main__":
+	if len(sys.argv) == 4:
+		x = float(sys.argv[1])
+		y = float(sys.argv[2])
+		w = float(sys.argv[3])
+	else:
+		print usage()
+		sys.exit(1)
+	print "Requesting %s , %s , %s"%(x, y, w)
+	simple_navigation_golas_client(x,y,w)
