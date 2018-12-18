@@ -6,77 +6,78 @@ from simple_navigation_goals.srv import *
 msg1 = None
 msg2 = None
 def simple_navigation_golas_client(x,y,z,w):
-	rospy.wait_for_service('simple_navigation_golas')
-	try:
-		send_goals = rospy.ServiceProxy('simple_navigation_golas', simple_navigation_goals)
-		resp1 = send_goals(x, y, z, w)
-		#return resp1.resp
-		if resp1.resp:
-		    print("Goal reached!")
-	except rospy.ServiceException, e:
-		print "Service call failed: %s"%e
-
+    rospy.wait_for_service('simple_navigation_golas')
+    try:
+        send_goals = rospy.ServiceProxy('simple_navigation_golas', simple_navigation_goals)
+        resp1 = send_goals(x, y, z, w)
+        #return resp1.resp
+        if resp1.resp:
+            print("Goal reached!")
+    except rospy.ServiceException, e:
+        print "Service call failed: %s"%e
 def check_qr(arg):
-	while arg != msg2:	
-		print(msg2)
+    x = 0
+    while arg != msg2:
+        x = 1
 def callback1(data):
-	#rospy.loginfo(rospy.get_caller_id() + "Input selected: %s", data.data)	
-	global msg1
-	msg1 = data.data
-	
-def callback2(data):	
-	global msg2
-	msg2 = data.data
-		 
+    global msg1
+    msg1 = data.data
+
+def callback2(data):    
+    global msg2
+    msg2 = data.data
+         
+
 def interface_listener():
-	global msg1
-	global msg2
-	rospy.init_node('interface_listener', anonymous=True)
-	rospy.Subscriber("goals", String, callback1)
-	rospy.Subscriber("QRcode", String, callback2)
-	pub = rospy.Publisher('change_map_topic', String, queue_size=10) 
-	rate = rospy.Rate(10)
-	rate.sleep()
-	while not rospy.is_shutdown():
-		#'hello' means from the janitor's office to balazs
-		if msg1 == "hello":	
-			print("Moving to outside elevator GF")	
-			#janitors room goals
-			simple_navigation_golas_client(5.52430,-1.8078,-0.3031,0.9529)
-			check_qr('elevator')
-			print("Moving inside elevator GF")
-			simple_navigation_golas_client(7.1354,-2.906,-0.3170,0.9484)
-			print("inside elevator, waiting for 5th floor QR read")			
-			check_qr('five')
-			print("Requesting outside elevator 5th floor")
-			simple_navigation_golas_client(9.4843,-4.3018,-0.4412,0.8974)
-			print("Requesting corridor 5th floor")
-			simple_navigation_golas_client(7.3699,-9.4643,-0.2922,0.9563)
-			print("Requesting corridor 5th floor 2")
-			simple_navigation_golas_client(15.439,-15.085,-0.2967,0.9549)
-			print("Requesting outside Balazs office")
-			simple_navigation_golas_client(21.906,-20.139,-0.8850,0.4654)
-			msg1 = "none"
-		
+    global msg1
+    global msg2
+    rospy.init_node('interface_listener', anonymous=True)
+    rospy.Subscriber("goals", String, callback1)
+    rospy.Subscriber("QRcode", String, callback2)
+    pub = rospy.Publisher('listener', String, queue_size=10)
+    rate = rospy.Rate(15)
+    rate.sleep()
+    while not rospy.is_shutdown():
+        #'hello' means from the janitor's office to balazs
+        if msg1 == "hello":   
+            print("Moving to outside elevator GF")   
+            simple_navigation_golas_client(5.52430,-1.8078,-0.3031,0.9529)
+            pub.publish("Please press the elevator button")
+            check_qr('elevator')
+            print("Moving inside elevator GF")
+            simple_navigation_golas_client(7.1354,-2.906,-0.3170,0.9484)
+            pub.publish("Please press 5th floor, waiting for QR read")
+            print("inside elevator, waiting for 5th floor QR read")          
+            check_qr('five')
+            print("Requesting outside elevator 5th floor")
+            pub.publish("Going to Balazs office")
+            simple_navigation_golas_client(9.4843,-4.3018,-0.4412,0.8974)
+            print("Requesting corridor 5th floor")
+            simple_navigation_golas_client(7.3699,-9.4643,-0.2922,0.9563)
+            print("Requesting corridor 5th floor 2")
+            simple_navigation_golas_client(15.439,-15.085,-0.2967,0.9549)
+            print("Requesting outside Balazs office")
+            simple_navigation_golas_client(21.906,-20.139,-0.8850,0.4654)
+            msg1 = "none"
 
-		#"hi" means from Balazs office to the basement
-		elif msg1 == "hi":
-			print("Requesting corridoor 5th F")
-			simple_navigation_golas_client(7.030,9.645,0.4162,0.9092)
-			print("Requesting outside elevator 5th F")
-			simple_navigation_golas_client(8.8708,-3.9619,0.9571,0.2896)
-			check_qr('elevatortwo')
-			print("Requesting inside Elevator")
-			simple_navigation_golas_client(6.9585,-2.732,0.9608,0.2770)
-			check_qr('gf')
-			print("Requesting janitors office")
-			simple_navigation_golas_client(-1.2806,1.069,-0.9479,0.3185)
-			#os.system("rosrun simple_navigation_goals simple_navigation_goals_client -11 0.2 4")
-			msg1 = "none"
-		else:
-			print("waiting for goal cmd")
-		rate.sleep()
-	rospy.spin()
+        #"hi" means from Balazs office to the basement
+        elif msg1 == "hi":
+            #print("Requesting corridoor 5th F")
+            #simple_navigation_golas_client(7.030,9.645,0.4162,0.9092)
+            print("Requesting corridor doorway 5th F")
+            simple_navigation_golas_client(7.118,-9.429,0.4448,0.8956)
+            print("Requesting outside elevator 5th F")
+            simple_navigation_golas_client(8.8708,-3.9619,0.9571,0.2896)
+            check_qr('elevatortwo')
+            print("Requesting inside Elevator")
+            simple_navigation_golas_client(6.8734,-2.664,0.9624,0.2714)
+            check_qr('gf')
+            print("Requesting janitors office")
+            simple_navigation_golas_client(-1.2806,1.069,-0.9479,0.3185)
+            #os.system("rosrun simple_navigation_goals simple_navigation_goals_client -11 0.2 4")
+            msg1 = "none"
 
+            
 if __name__ == '__main__':
-	interface_listener()
+    interface_listener()
+    rospy.spin()
